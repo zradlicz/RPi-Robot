@@ -1,0 +1,131 @@
+<!--
+<body>
+<div class="container">
+    <div class="row">
+        <div class="col-lg-8  offset-lg-2">
+            <h3 class="mt-5">Live Streaming</h3>
+            <img src="{{ url_for('video_feed') }}" width="100%">
+        </div>
+    </div>
+</div>
+</body>
+-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Control Motors and Stream</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <style>
+        /* Custom CSS for vertical sliders */
+        .vertical-slider {
+            writing-mode: bt-lr; /* Bottom-to-top, left-to-right */
+            -webkit-appearance: slider-vertical; /* WebKit browsers */
+            width: 20px;
+            height: 150px;
+            margin: 0 auto;
+            padding: 0;
+        }
+
+        /* Adjust position of slider value display */
+        .slider-value {
+            position: relative;
+            bottom: 30px; /* Adjust as needed */
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="row">
+        <div class="col-lg-8 offset-lg-2">
+            <h3 class="mt-5">Live Streaming</h3>
+            <img id="video-stream" src="{{ url_for('video_feed') }}" width="100%" style="margin-bottom: 20px;">
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-lg-4 offset-lg-2">
+            <h4>Motor 1 Control</h4>
+            <div class="form-group">
+                <label for="motor1-slider">PWM:</label>
+                <input type="range" class="form-control-range vertical-slider" id="motor1-slider" min="0" max="100" value="50">
+                <span id="motor1-value" class="slider-value">50</span>
+            </div>
+        </div>
+        <div class="col-lg-4">
+            <h4>Motor 2 Control</h4>
+            <div class="form-group">
+                <label for="motor2-slider">PWM:</label>
+                <input type="range" class="form-control-range vertical-slider" id="motor2-slider" min="0" max="100" value="50">
+                <span id="motor2-value" class="slider-value">50</span>
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-lg-8 offset-lg-2">
+            <button id="start-btn" class="btn btn-primary">Start Motors</button>
+            <button id="stop-btn" class="btn btn-danger">Stop Motors</button>
+        </div>
+    </div>
+</div>
+<script>
+    // Define function to update motor value display
+    function updateMotorValue(sliderId, displayId) {
+        var slider = document.getElementById(sliderId);
+        var display = document.getElementById(displayId);
+        display.innerText = slider.value;
+    }
+
+    // Update motor value displays initially
+    updateMotorValue("motor1-slider", "motor1-value");
+    updateMotorValue("motor2-slider", "motor2-value");
+
+    // Add event listeners for slider input events
+    document.getElementById("motor1-slider").addEventListener("input", function() {
+        updateMotorValue("motor1-slider", "motor1-value");
+        updatePWM("motor1", this.value);
+    });
+
+    document.getElementById("motor2-slider").addEventListener("input", function() {
+        updateMotorValue("motor2-slider", "motor2-value");
+        updatePWM("motor2", this.value);
+    });
+
+    // Add event listener for start button
+    document.getElementById("start-btn").addEventListener("click", function() {
+        // Send AJAX request to start motors
+        var xhr = new XMLHttpRequest();
+        xhr.open("POST", "/start_motors", true);
+        xhr.setRequestHeader("Content-Type", "application/json");
+        xhr.onreadystatechange = function () {
+            if (xhr.readyState === XMLHttpRequest.DONE && xhr.status === 200) {
+                console.log("Motors started successfully");
+            }
+        };
+        xhr.send();
+    });
+
+    // Add event listener for stop button
+    document.getElementById("stop-btn").addEventListener("click", function() {
+        // Send AJAX request to stop motors
+        var xhr = new XMLHttpRequest();
+        xhr.open("POST", "/stop_motors", true);
+        xhr.setRequestHeader("Content-Type", "application/json");
+        xhr.onreadystatechange = function () {
+            if (xhr.readyState === XMLHttpRequest.DONE && xhr.status === 200) {
+                console.log("Motors stopped successfully");
+            }
+        };
+        xhr.send();
+    });
+
+    // Function to update PWM value for a motor
+    function updatePWM(motorId, pwmValue) {
+        var xhr = new XMLHttpRequest();
+        xhr.open("POST", "/update_pwm", true);
+        xhr.setRequestHeader("Content-Type", "application/json");
+        xhr.send(JSON.stringify({ motorId: motorId, pwmValue: pwmValue }));
+    }
+</script>
+</body>
+</html>
